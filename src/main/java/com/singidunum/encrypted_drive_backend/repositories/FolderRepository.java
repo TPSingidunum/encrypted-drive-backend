@@ -1,0 +1,7 @@
+package com.singidunum.encrypted_drive_backend.repositories;
+
+import com.singidunum.encrypted_drive_backend.entities.Folder;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface FolderRepository extends JpaRepository<Folder, Integer> {
+}
