@@ -74,7 +74,7 @@ public class AuthController {
             throw new CustomException("Username exists", HttpStatus.BAD_REQUEST, ErrorCode.USER_USERNAME_EXIST);
         }
 
-        if (userService.existsByEmail(data.getUsername())) {
+        if (userService.existsByEmail(data.getEmail())) {
             throw new CustomException("Email exists", HttpStatus.BAD_REQUEST, ErrorCode.USER_EMAIL_EXIST);
         }
 
@@ -84,6 +84,10 @@ public class AuthController {
 
         User newUser = userService.registerUser(data);
 
-        return ResponseEntity.ok(newUser);
+        if (newUser == null) {
+            throw new CustomException("ERROR", HttpStatus.BAD_REQUEST, ErrorCode.BASE_ERROR);
+        }
+
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }
