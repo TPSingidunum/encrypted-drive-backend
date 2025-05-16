@@ -1,6 +1,5 @@
 package com.singidunum.encrypted_drive_backend.controllers;
 
-import com.singidunum.encrypted_drive_backend.configs.security.JwtClaims;
 import com.singidunum.encrypted_drive_backend.entities.User;
 import com.singidunum.encrypted_drive_backend.services.UserService;
 import lombok.AllArgsConstructor;
