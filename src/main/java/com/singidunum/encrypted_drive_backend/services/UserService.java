@@ -44,7 +44,8 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-        System.out.println(jwtClaims.getSubject());
+        // TODO: BUG FIX
+//        System.out.println(jwtClaims.getSubject());
         return userRepository.findAll();
     }
 

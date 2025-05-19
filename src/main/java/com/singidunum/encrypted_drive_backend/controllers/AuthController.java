@@ -3,19 +3,19 @@ package com.singidunum.encrypted_drive_backend.controllers;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.CustomException;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.ErrorCode;
 import com.singidunum.encrypted_drive_backend.configs.security.JwtService;
+import com.singidunum.encrypted_drive_backend.dtos.RefreshTokenDto;
 import com.singidunum.encrypted_drive_backend.dtos.UserLoginDto;
 import com.singidunum.encrypted_drive_backend.dtos.UserRegisterDto;
 import com.singidunum.encrypted_drive_backend.entities.User;
 import com.singidunum.encrypted_drive_backend.services.UserService;
+import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -89,5 +89,29 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@Valid @RequestBody RefreshTokenDto data) {
+        Claims claims;
+
+        try {
+            claims = jwtService.extractAllClaimsFromToken(data.getRefreshToken());
+        } catch (Exception e) {
+            throw new CustomException("Jwt-Refresh Token Not Valid", HttpStatus.BAD_REQUEST, ErrorCode.BASE_ERROR);
+        }
+
+        if (!claims.get("type", String.class).equals("refresh")) {
+            throw new CustomException("Not a Refresh token", HttpStatus.BAD_REQUEST, ErrorCode.BASE_ERROR);
+        }
+
+        Map<String, Object> newClaims = new HashMap<>();
+        newClaims.put("email", claims.get("email", String.class));
+        newClaims.put("role", claims.get("role", String.class));
+        newClaims.put("type", "access");
+
+        String accessToken = jwtService.generateToken(claims.getSubject(), newClaims);
+
+        return ResponseEntity.ok(Map.of("accessToken", accessToken));
     }
 }
