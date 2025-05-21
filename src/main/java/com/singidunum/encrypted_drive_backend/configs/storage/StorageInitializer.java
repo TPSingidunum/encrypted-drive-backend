@@ -15,11 +15,13 @@ import java.nio.file.Paths;
 public class StorageInitializer implements ApplicationRunner {
 
     private final StorageProperties properties;
+    private StorageConfig storageConfig;
 
     @Override
     public void run(ApplicationArguments arg) {
         try {
             Path basePath = getCurrentAppPath();
+            storageConfig.setBasePath(basePath);
             Files.createDirectories(basePath);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -27,6 +29,6 @@ public class StorageInitializer implements ApplicationRunner {
     }
 
     public Path getCurrentAppPath() {
-       return Paths.get(System.getProperty("user.dir"), properties.getLocalStorageLocation()).toAbsolutePath().normalize();
+       return Paths.get(System.getProperty("user.dir"), properties.getLocalStorageLocation()).normalize();
     }
 }

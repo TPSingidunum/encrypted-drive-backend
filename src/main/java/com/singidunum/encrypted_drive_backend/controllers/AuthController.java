@@ -7,6 +7,7 @@ import com.singidunum.encrypted_drive_backend.dtos.RefreshTokenDto;
 import com.singidunum.encrypted_drive_backend.dtos.UserLoginDto;
 import com.singidunum.encrypted_drive_backend.dtos.UserRegisterDto;
 import com.singidunum.encrypted_drive_backend.entities.User;
+import com.singidunum.encrypted_drive_backend.services.StorageService;
 import com.singidunum.encrypted_drive_backend.services.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ import java.util.Optional;
 public class AuthController {
 
     private final UserService userService;
+    private final StorageService storageService;
     private final JwtService jwtService;
     private PasswordEncoder passwordEncoder;
 
@@ -69,7 +71,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDto data) {
-        // Da li postoji korinsik sa tim username-om i email-om
+
         if (userService.existsByUsername(data.getUsername())) {
             throw new CustomException("Username exists", HttpStatus.BAD_REQUEST, ErrorCode.USER_USERNAME_EXIST);
         }
@@ -87,6 +89,8 @@ public class AuthController {
         if (newUser == null) {
             throw new CustomException("ERROR", HttpStatus.BAD_REQUEST, ErrorCode.BASE_ERROR);
         }
+
+        storageService.createUserWorkspace(newUser);
 
         return ResponseEntity.ok(Map.of("success", true));
     }

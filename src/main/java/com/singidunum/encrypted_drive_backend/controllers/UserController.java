@@ -15,6 +15,10 @@ public class UserController {
 
     @GetMapping("/users")
     public List<User> getAllUsers() {
-        return userService.getAllUsers();
+        List<User> users = userService.getAllUsers();
+        for(User u: users) {
+            u.setWorkspaces(null);
+        }
+        return users;
     }
 }

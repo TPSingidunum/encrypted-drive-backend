@@ -1,5 +1,6 @@
 package com.singidunum.encrypted_drive_backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,5 +25,6 @@ public class User extends BaseEntity{
 
     /* Relations */
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<Workspace> workspaces = new ArrayList<>();
 }

@@ -11,7 +11,8 @@ public enum ErrorCode {
     USER_NOT_EXIST(1002),
     USER_EMAIL_EXIST(1003),
     USER_USERNAME_EXIST(1004),
-    PASSWORDS_DO_NOT_MATCH(1005);
+    PASSWORDS_DO_NOT_MATCH(1005),
+    FAILED_WORKSPACE_CREATION(1006);
 
     private final int code;
     ErrorCode(int code) {
