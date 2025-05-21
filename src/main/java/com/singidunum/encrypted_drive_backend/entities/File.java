@@ -1,5 +1,6 @@
 package com.singidunum.encrypted_drive_backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,4 +23,9 @@ public class File extends BaseEntity {
 
     @Column(name = "parent_id")
     private int parentId;
+
+    @ManyToOne()
+    @JoinColumn(name = "parent_id", insertable = false, updatable = false)
+    @JsonBackReference
+    private Folder parentFolder;
 }

@@ -28,6 +28,6 @@ public class JwtClaims {
     }
 
     public String getUsername() {
-        return getClaims().get("username", String.class);
+        return getClaims().getSubject();
     }
 }

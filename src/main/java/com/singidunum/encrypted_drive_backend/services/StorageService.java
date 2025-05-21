@@ -2,6 +2,7 @@ package com.singidunum.encrypted_drive_backend.services;
 
 import com.singidunum.encrypted_drive_backend.configs.exceptions.CustomException;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.ErrorCode;
+import com.singidunum.encrypted_drive_backend.configs.security.JwtClaims;
 import com.singidunum.encrypted_drive_backend.configs.storage.StorageConfig;
 import com.singidunum.encrypted_drive_backend.entities.File;
 import com.singidunum.encrypted_drive_backend.entities.Folder;
@@ -9,14 +10,20 @@ import com.singidunum.encrypted_drive_backend.entities.User;
 import com.singidunum.encrypted_drive_backend.entities.Workspace;
 import com.singidunum.encrypted_drive_backend.repositories.FileRepository;
 import com.singidunum.encrypted_drive_backend.repositories.FolderRepository;
+import com.singidunum.encrypted_drive_backend.repositories.UserRepository;
 import com.singidunum.encrypted_drive_backend.repositories.WorkspaceRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +31,8 @@ public class StorageService {
     private final FileRepository fileRepository;
     private final WorkspaceRepository workspaceRepository;
     private final FolderRepository folderRepository;
+    private final UserRepository userRepository;
+    private final JwtClaims jwtClaims;
     private StorageConfig storageConfig;
 
     public void createUserWorkspace(User user) {
@@ -38,6 +47,35 @@ public class StorageService {
 
         } catch (IOException e) {
             throw new CustomException("Failed to crate default user workspace", HttpStatus.BAD_REQUEST, ErrorCode.FAILED_WORKSPACE_CREATION);
+        }
+    }
+
+    public boolean storeFile(MultipartFile file) {
+        String filename = Paths.get(Objects.requireNonNull(file.getOriginalFilename())).getFileName().toString();
+        String username = jwtClaims.getUsername();
+        System.out.println(username);
+        Optional<User> user = userRepository.findByUsername(username);
+
+        if (user.isEmpty()) {
+            throw new CustomException("Failed to get User", HttpStatus.BAD_REQUEST, ErrorCode.USER_USERNAME_EXIST);
+        }
+
+        try (var in = file.getInputStream()) {
+            Path target = storageConfig.getStoragePath(String.valueOf(user.get().getUserId()));
+            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+
+            File newFile = new File();
+            //TODO: User can have multiple workspaces
+            newFile.setWorkspaceId(user.get().getWorkspaces().getFirst().getWorkspaceId());
+            newFile.setName(filename);
+            newFile.setPath(target.toString());
+            // TODO: does not register null foreign key
+            fileRepository.save(newFile);
+
+            return true;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
