@@ -1,0 +1,18 @@
+# Project parameters
+spring.application.name=encrypted-drive-backend
+
+# Database parameters
+spring.jpa.hibernate.ddl-auto=validate
+spring.datasource.url=jdbc:mysql://localhost/encrypted_drive
+spring.datasource.username=
+spring.datasource.password=
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.show-sql: true
+
+#Jwt Parameters
+jwt.secret=sldajf;ksajdf
+jwt.access.expire= 10800000
+jwt.refresh.expire=86400000
+
+#Storage
+storage.local-storage-location=storage
