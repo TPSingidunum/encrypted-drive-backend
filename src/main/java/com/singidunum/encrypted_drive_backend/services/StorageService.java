@@ -51,7 +51,7 @@ public class StorageService {
         }
     }
 
-    public boolean storeFile(MultipartFile file) {
+    public boolean storeFile(int workspaceId, MultipartFile file) {
         String filename = Paths.get(Objects.requireNonNull(file.getOriginalFilename())).getFileName().toString();
         String username = jwtClaims.getUsername();
         System.out.println(username);
@@ -67,7 +67,7 @@ public class StorageService {
 
             File newFile = new File();
             //TODO: User can have multiple workspaces
-            newFile.setWorkspaceId(user.get().getWorkspaces().getFirst().getWorkspaceId());
+            newFile.setWorkspaceId(workspaceId);
             newFile.setName(filename);
             newFile.setPath(target.toString());
             fileRepository.save(newFile);

@@ -30,9 +30,9 @@ public class StorageController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("workspaceId") int workspaceId) {
         System.out.println("File upload");
-        boolean result = storageService.storeFile(file);
+        boolean result = storageService.storeFile(workspaceId, file);
         return ResponseEntity.ok(Map.of("success", result));
     }
 }
