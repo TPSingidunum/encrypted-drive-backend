@@ -13,7 +13,9 @@ public enum ErrorCode {
     USER_USERNAME_EXIST(1004),
     PASSWORDS_DO_NOT_MATCH(1005),
     FAILED_WORKSPACE_CREATION(1006),
-    FAILED_FILE_STORE(1007);
+    FAILED_FILE_STORE(1007),
+    FILE_DOES_NOT_EXIST(1008),
+    STORAGE_FILE_DOES_NOT_EXIST(1009);
 
     private final int code;
     ErrorCode(int code) {

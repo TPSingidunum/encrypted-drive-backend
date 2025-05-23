@@ -13,10 +13,13 @@ import com.singidunum.encrypted_drive_backend.repositories.FolderRepository;
 import com.singidunum.encrypted_drive_backend.repositories.UserRepository;
 import com.singidunum.encrypted_drive_backend.repositories.WorkspaceRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -94,5 +97,27 @@ public class StorageService {
         List<Folder> folders = folderRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId);
 
         return Map.of("files", files, "folders", folders);
+    }
+
+    public Resource loadFile(int fileId) {
+        Optional<File> file = fileRepository.findById(fileId);
+
+        if (file.isEmpty()) {
+            throw new CustomException("Failed to get File", HttpStatus.BAD_REQUEST, ErrorCode.FILE_DOES_NOT_EXIST);
+        }
+
+        Path path = Path.of(file.get().getPath());
+
+        try {
+            Resource resource = new UrlResource(path.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new CustomException("Failed to get Storage file", HttpStatus.BAD_REQUEST, ErrorCode.STORAGE_FILE_DOES_NOT_EXIST);
+            }
+
+            return  resource;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
