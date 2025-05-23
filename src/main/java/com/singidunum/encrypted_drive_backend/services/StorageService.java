@@ -16,12 +16,13 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -61,7 +62,7 @@ public class StorageService {
         }
 
         try (var in = file.getInputStream()) {
-            Path target = storageConfig.getStoragePath(String.valueOf(user.get().getUserId()));
+            Path target = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "\\" + filename));
             Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
 
             File newFile = new File();
@@ -76,5 +77,22 @@ public class StorageService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Workspace> getAllUserWorkspaces() {
+        Optional<User> user = userRepository.findByUsername(jwtClaims.getUsername());
+
+        if(user.isEmpty()) {
+            throw new CustomException("Failed to get User", HttpStatus.BAD_REQUEST, ErrorCode.USER_USERNAME_EXIST);
+        }
+
+        return workspaceRepository.findAllByUserId(user.get().getUserId());
+    }
+
+    public Map<String, Object> getAllChildrenByWorkspaceId(int workspaceId) {
+        List<File> files = fileRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId);
+        List<Folder> folders = folderRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId);
+
+        return Map.of("files", files, "folders", folders);
     }
 }
