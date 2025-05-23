@@ -14,15 +14,15 @@ public class Folder extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "folder_id")
-    private int folderId;
+    private Integer folderId;
 
     private String name;
 
     @Column(name = "workspace_id")
-    private int workspaceId;
+    private Integer workspaceId;
 
     @Column(name = "parent_id")
-    private int parentId;
+    private Integer parentId;
 
     // Parent
     @ManyToOne()

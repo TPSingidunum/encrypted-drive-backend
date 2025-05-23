@@ -69,7 +69,6 @@ public class StorageService {
             newFile.setWorkspaceId(user.get().getWorkspaces().getFirst().getWorkspaceId());
             newFile.setName(filename);
             newFile.setPath(target.toString());
-            // TODO: does not register null foreign key
             fileRepository.save(newFile);
 
             return true;

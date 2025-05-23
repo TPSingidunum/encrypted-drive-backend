@@ -12,17 +12,17 @@ public class File extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "file_id")
-    private int fileId;
+    private Integer fileId;
 
     private String name;
 
     private String path;
 
     @Column(name = "workspace_id")
-    private int workspaceId;
+    private Integer workspaceId;
 
     @Column(name = "parent_id")
-    private int parentId;
+    private Integer parentId;
 
     @ManyToOne()
     @JoinColumn(name = "parent_id", insertable = false, updatable = false)
