@@ -9,8 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 
@@ -27,16 +25,21 @@ public class StorageController {
         return ResponseEntity.ok(workspaces);
     }
 
-    @GetMapping("/workspace/{workspaceId}")
+    @GetMapping("/workspace/{workspaceId}/children")
     public ResponseEntity<?> getAllWorkspaceChildren(@PathVariable("workspaceId") int workspaceId){
         Map<String, Object> children = storageService.getAllChildrenByWorkspaceId(workspaceId);
         return ResponseEntity.ok(children);
     }
 
+    @GetMapping("/folder/{folderId}/children")
+    public ResponseEntity<?> getAllFolderChildren(@PathVariable("folderId") int folderId){
+        Map<String, Object> children = storageService.getAllChildrenByFolderId(folderId);
+        return ResponseEntity.ok(children);
+    }
+
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("workspaceId") int workspaceId) {
-        System.out.println("File upload");
-        boolean result = storageService.storeFile(workspaceId, file);
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("workspaceId") int workspaceId, @RequestParam("folderId") int folderId) {
+        boolean result = storageService.storeFile(workspaceId, folderId, file);
         return ResponseEntity.ok(Map.of("success", result));
     }
 

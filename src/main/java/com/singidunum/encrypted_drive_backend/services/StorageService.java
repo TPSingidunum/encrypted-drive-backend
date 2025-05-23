@@ -54,7 +54,7 @@ public class StorageService {
         }
     }
 
-    public boolean storeFile(int workspaceId, MultipartFile file) {
+    public boolean storeFile(int workspaceId, int folderId, MultipartFile file) {
         String filename = Paths.get(Objects.requireNonNull(file.getOriginalFilename())).getFileName().toString();
         String username = jwtClaims.getUsername();
         System.out.println(username);
@@ -73,6 +73,9 @@ public class StorageService {
             newFile.setWorkspaceId(workspaceId);
             newFile.setName(filename);
             newFile.setPath(target.toString());
+            if (folderId != 0) {
+                newFile.setParentId(folderId);
+            }
             fileRepository.save(newFile);
 
             return true;
@@ -95,6 +98,13 @@ public class StorageService {
     public Map<String, Object> getAllChildrenByWorkspaceId(int workspaceId) {
         List<File> files = fileRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId);
         List<Folder> folders = folderRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId);
+
+        return Map.of("files", files, "folders", folders);
+    }
+
+    public Map<String, Object> getAllChildrenByFolderId(int folderId) {
+        List<File> files = fileRepository.findAllByParentId(folderId);
+        List<Folder> folders = folderRepository.findAllByParentId(folderId);
 
         return Map.of("files", files, "folders", folders);
     }

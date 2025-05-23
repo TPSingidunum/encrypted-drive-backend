@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface FolderRepository extends JpaRepository<Folder, Integer> {
     List<Folder> findAllByParentIdIsNullAndWorkspaceId(int workspaceId);
+    List<Folder> findAllByParentId(int parentId);
 }

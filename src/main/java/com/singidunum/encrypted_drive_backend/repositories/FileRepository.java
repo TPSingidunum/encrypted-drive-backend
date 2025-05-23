@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface FileRepository extends JpaRepository<File, Integer> {
     List<File> findAllByParentIdIsNullAndWorkspaceId(int workspaceId);
+    List<File> findAllByParentId(int parentId);
 }
