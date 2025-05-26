@@ -22,6 +22,10 @@ public class User extends BaseEntity{
 
     private String password;
 
+    @Lob
+    @Column(name = "public_key", columnDefinition = "TEXT")
+    private String publicKey;
+
     /* Relations */
     @OneToMany(mappedBy = "user")
     @JsonManagedReference
