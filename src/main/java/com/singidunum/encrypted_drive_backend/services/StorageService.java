@@ -96,10 +96,8 @@ public class StorageService {
         Path encryptedTarget = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "\\" + encryptedFilename));
         Files.createDirectories(encryptedTarget);
         try (OutputStream out = Files.newOutputStream(encryptedTarget); CipherOutputStream cos = new CipherOutputStream(out, cipher)) {
-        {
             // Citaj fajl block po block cuvaj ga u adekvatnu lokaciju itd ...
         }
-
 
         File newFile = new File();
         newFile.setWorkspaceId(workspaceId);
