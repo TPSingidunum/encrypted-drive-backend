@@ -1,5 +1,6 @@
 package com.singidunum.encrypted_drive_backend.services;
 
+import com.singidunum.encrypted_drive_backend.configs.encryption.EncryptionUtility;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.CustomException;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.ErrorCode;
 import com.singidunum.encrypted_drive_backend.configs.security.JwtClaims;
@@ -9,26 +10,24 @@ import com.singidunum.encrypted_drive_backend.entities.File;
 import com.singidunum.encrypted_drive_backend.entities.Folder;
 import com.singidunum.encrypted_drive_backend.entities.User;
 import com.singidunum.encrypted_drive_backend.entities.Workspace;
-import com.singidunum.encrypted_drive_backend.repositories.FileRepository;
-import com.singidunum.encrypted_drive_backend.repositories.FolderRepository;
-import com.singidunum.encrypted_drive_backend.repositories.UserRepository;
-import com.singidunum.encrypted_drive_backend.repositories.WorkspaceRepository;
+import com.singidunum.encrypted_drive_backend.repositories.*;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.crypto.*;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -37,8 +36,10 @@ public class StorageService {
     private final WorkspaceRepository workspaceRepository;
     private final FolderRepository folderRepository;
     private final UserRepository userRepository;
+    private final EnvelopeRepository envelopeRepository;
     private final JwtClaims jwtClaims;
     private StorageConfig storageConfig;
+    private EncryptionUtility encryptionUtility;
 
     public void createUserWorkspace(User user) {
         Path storagePath = storageConfig.getStoragePath(String.valueOf(user.getUserId()));
@@ -67,7 +68,7 @@ public class StorageService {
         folderRepository.save(newFolder);
     }
 
-    public boolean storeFile(int workspaceId, int folderId, MultipartFile file) {
+    public boolean storeFile(int workspaceId, int folderId, MultipartFile file) throws IllegalBlockSizeException, BadPaddingException, IOException {
         String filename = Paths.get(Objects.requireNonNull(file.getOriginalFilename())).getFileName().toString();
         String username = jwtClaims.getUsername();
         System.out.println(username);
@@ -77,25 +78,40 @@ public class StorageService {
             throw new CustomException("Failed to get User", HttpStatus.BAD_REQUEST, ErrorCode.USER_USERNAME_EXIST);
         }
 
+        Path target = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "\\" + UUID.randomUUID()));
+
         try (var in = file.getInputStream()) {
-            Path target = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "\\" + filename));
             Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-
-            File newFile = new File();
-            //TODO: User can have multiple workspaces
-            newFile.setWorkspaceId(workspaceId);
-            newFile.setName(filename);
-            newFile.setPath(target.toString());
-            if (folderId != 0) {
-                newFile.setParentId(folderId);
-            }
-            fileRepository.save(newFile);
-
-            return true;
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        SecretKey key = encryptionUtility.generateSecretKey();
+        byte[] IV = encryptionUtility.generateIv();
+        Cipher cipher = encryptionUtility.initializeCipher(Cipher.ENCRYPT_MODE, key, IV);
+
+        byte[] encryptedFilenameBytes = cipher.doFinal(filename.getBytes(StandardCharsets.UTF_8));
+        String encryptedFilename = Base64.getEncoder().encodeToString(encryptedFilenameBytes);
+
+        Path encryptedTarget = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "\\" + encryptedFilename));
+        Files.createDirectories(encryptedTarget);
+        try (OutputStream out = Files.newOutputStream(encryptedTarget); CipherOutputStream cos = new CipherOutputStream(out, cipher)) {
+        {
+            // Citaj fajl block po block cuvaj ga u adekvatnu lokaciju itd ...
+        }
+
+
+        File newFile = new File();
+        newFile.setWorkspaceId(workspaceId);
+        newFile.setName(filename);
+        newFile.setPath(target.toString());
+        if (folderId != 0) {
+            newFile.setParentId(folderId);
+        }
+        fileRepository.save(newFile);
+
+        return true;
+
     }
 
     public List<Workspace> getAllUserWorkspaces() {

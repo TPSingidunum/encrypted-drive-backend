@@ -20,4 +20,5 @@ public class EncryptionProperties {
     private int aesKeySize = 256;
     private int gcmTagSize = 128;
     private int ivSize = 96;
+    private int chunkSize;
 }
