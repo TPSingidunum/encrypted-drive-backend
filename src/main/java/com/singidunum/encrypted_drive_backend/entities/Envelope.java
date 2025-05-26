@@ -24,7 +24,6 @@ public class Envelope extends BaseEntity{
     private String iv;
 
     // Relations
-
     @ManyToOne()
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @JsonBackReference

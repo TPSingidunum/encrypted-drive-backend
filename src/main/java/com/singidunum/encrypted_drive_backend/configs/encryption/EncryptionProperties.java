@@ -15,5 +15,9 @@ public class EncryptionProperties {
     private String issuerCommonName = "Singidunum";
     private String issuerOrganization = "Singidunum";
     private String issuerCountry = "Singidunum";
+    private String algorithm;
     private int rsaKeySize = 2048;
+    private int aesKeySize = 256;
+    private int gcmTagSize = 128;
+    private int ivSize = 96;
 }
