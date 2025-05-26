@@ -26,4 +26,8 @@ public class User extends BaseEntity{
     @OneToMany(mappedBy = "user")
     @JsonManagedReference
     private List<Workspace> workspaces = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
+    private List<Envelope> envelopes = new ArrayList<>();
 }
