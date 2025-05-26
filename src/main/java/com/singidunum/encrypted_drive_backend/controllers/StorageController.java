@@ -1,7 +1,9 @@
 package com.singidunum.encrypted_drive_backend.controllers;
 
+import com.singidunum.encrypted_drive_backend.dtos.CreateFolderDto;
 import com.singidunum.encrypted_drive_backend.entities.Workspace;
 import com.singidunum.encrypted_drive_backend.services.StorageService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -35,6 +37,12 @@ public class StorageController {
     public ResponseEntity<?> getAllFolderChildren(@PathVariable("folderId") int folderId){
         Map<String, Object> children = storageService.getAllChildrenByFolderId(folderId);
         return ResponseEntity.ok(children);
+    }
+
+    @PostMapping("/folder")
+    public ResponseEntity<?> createFolder(@Valid @RequestBody CreateFolderDto data){
+        storageService.createFolder(data);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @PostMapping("/upload")

@@ -4,6 +4,7 @@ import com.singidunum.encrypted_drive_backend.configs.exceptions.CustomException
 import com.singidunum.encrypted_drive_backend.configs.exceptions.ErrorCode;
 import com.singidunum.encrypted_drive_backend.configs.security.JwtClaims;
 import com.singidunum.encrypted_drive_backend.configs.storage.StorageConfig;
+import com.singidunum.encrypted_drive_backend.dtos.CreateFolderDto;
 import com.singidunum.encrypted_drive_backend.entities.File;
 import com.singidunum.encrypted_drive_backend.entities.Folder;
 import com.singidunum.encrypted_drive_backend.entities.User;
@@ -52,6 +53,18 @@ public class StorageService {
         } catch (IOException e) {
             throw new CustomException("Failed to crate default user workspace", HttpStatus.BAD_REQUEST, ErrorCode.FAILED_WORKSPACE_CREATION);
         }
+    }
+
+    public void createFolder(CreateFolderDto data) {
+        Folder newFolder = new Folder();
+        newFolder.setName(data.getName());
+        newFolder.setWorkspaceId(data.getWorkspaceId());
+
+        if (data.getParentId() != 0) {
+            newFolder.setParentId(data.getParentId());
+        }
+
+        folderRepository.save(newFolder);
     }
 
     public boolean storeFile(int workspaceId, int folderId, MultipartFile file) {
