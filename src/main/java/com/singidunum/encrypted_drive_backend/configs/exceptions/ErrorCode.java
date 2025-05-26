@@ -15,7 +15,8 @@ public enum ErrorCode {
     FAILED_WORKSPACE_CREATION(1006),
     FAILED_FILE_STORE(1007),
     FILE_DOES_NOT_EXIST(1008),
-    STORAGE_FILE_DOES_NOT_EXIST(1009);
+    STORAGE_FILE_DOES_NOT_EXIST(1009),
+    FAILED_TO_GET_CERTIFICATE(1010);
 
     private final int code;
     ErrorCode(int code) {

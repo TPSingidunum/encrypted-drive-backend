@@ -1,5 +1,6 @@
 package com.singidunum.encrypted_drive_backend.controllers;
 
+import com.singidunum.encrypted_drive_backend.configs.encryption.EncryptionProperties;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.CustomException;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.ErrorCode;
 import com.singidunum.encrypted_drive_backend.configs.security.JwtService;
@@ -12,11 +13,17 @@ import com.singidunum.encrypted_drive_backend.services.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +37,7 @@ public class AuthController {
     private final StorageService storageService;
     private final JwtService jwtService;
     private PasswordEncoder passwordEncoder;
+    private EncryptionProperties encryptionProperties;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginDto data) {
@@ -117,5 +125,25 @@ public class AuthController {
         String accessToken = jwtService.generateToken(claims.getSubject(), newClaims);
 
         return ResponseEntity.ok(Map.of("accessToken", accessToken));
+    }
+
+    @GetMapping("/certificate")
+    public ResponseEntity<?> downloadFile() {
+        Path certificatePath = Path.of(encryptionProperties.getCertificatePath());
+        try {
+            Resource resource = new UrlResource(certificatePath.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new CustomException("Failed to get Certificate file", HttpStatus.BAD_REQUEST, ErrorCode.FAILED_TO_GET_CERTIFICATE);
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"certificate.cer\"")
+                    .body(resource);
+
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
