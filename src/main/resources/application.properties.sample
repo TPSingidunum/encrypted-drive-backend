@@ -16,3 +16,7 @@ jwt.refresh.expire=86400000
 
 #Storage
 storage.local-storage-location=storage
+
+# Encryption
+encryption.certificate-path=src/main/resources/certs/cert.pem
+encryption.private-key-path=src/main/resources/certs/priv.pem
