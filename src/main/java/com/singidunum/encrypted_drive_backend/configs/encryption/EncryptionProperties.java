@@ -12,4 +12,8 @@ import org.springframework.stereotype.Component;
 public class EncryptionProperties {
     private String certificatePath;
     private String privateKeyPath;
+    private String issuerCommonName = "Singidunum";
+    private String issuerOrganization = "Singidunum";
+    private String issuerCountry = "Singidunum";
+    private int rsaKeySize = 2048;
 }

@@ -158,11 +158,13 @@ public class CertificateInitializer implements ApplicationRunner {
 
         // Generate RSA key pair
         KeyPairGenerator rsaKPG = KeyPairGenerator.getInstance("RSA");
-        rsaKPG.initialize(4096);
+        rsaKPG.initialize(encryptionProperties.getRsaKeySize());
         KeyPair rsaKP = rsaKPG.generateKeyPair();
 
         // Certificate details
-        String issuerParams = "CN=KIBP, O=KIBP, C=Serbia";
+        String issuerParams = "CN=" + encryptionProperties.getIssuerCommonName() +
+                ", O=" + encryptionProperties.getIssuerOrganization() +
+                ", C=" + encryptionProperties.getIssuerCountry();
         BigInteger serialNumber = BigInteger.valueOf(System.currentTimeMillis());
         Date notBefore = new Date(System.currentTimeMillis() - 300 * 1000);
         Date notAfter = new Date(System.currentTimeMillis() + 365L * 24 * 60 * 60 * 1000); // valid for 1 year

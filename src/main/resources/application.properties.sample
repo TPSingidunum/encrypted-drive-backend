@@ -17,6 +17,9 @@ jwt.refresh.expire=86400000
 #Storage
 storage.local-storage-location=storage
 
-# Encryption
-encryption.certificate-path=src/main/resources/certs/cert.pem
-encryption.private-key-path=src/main/resources/certs/priv.pem
+encryption.certificate-path=src/main/resources/certs/ca_cert.pem
+encryption.private-key-path=src/main/resources/certs/ca_key.pem
+encryption.issuer-common-name=EDrive
+encryption.issuer-organization=Singidunum
+encryption.issuer-country=Serbia
+encryption.rsa-key-size=4096
