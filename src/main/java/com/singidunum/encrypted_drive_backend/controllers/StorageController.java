@@ -1,7 +1,7 @@
 package com.singidunum.encrypted_drive_backend.controllers;
 
 import com.singidunum.encrypted_drive_backend.dtos.CreateFolderDto;
-import com.singidunum.encrypted_drive_backend.entities.Workspace;
+import com.singidunum.encrypted_drive_backend.dtos.WorkspaceDto;
 import com.singidunum.encrypted_drive_backend.services.StorageService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -11,6 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +26,7 @@ public class StorageController {
 
     @GetMapping("/workspaces")
     public ResponseEntity<?> getAllUserWorkspaces(){
-        List<Workspace> workspaces = storageService.getAllUserWorkspaces();
+        List<WorkspaceDto> workspaces = storageService.getAllUserWorkspaces();
         return ResponseEntity.ok(workspaces);
     }
 
@@ -46,7 +49,7 @@ public class StorageController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("workspaceId") int workspaceId, @RequestParam("folderId") int folderId) {
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("workspaceId") int workspaceId, @RequestParam("folderId") int folderId) throws IllegalBlockSizeException, BadPaddingException, IOException {
         boolean result = storageService.storeFile(workspaceId, folderId, file);
         return ResponseEntity.ok(Map.of("success", result));
     }

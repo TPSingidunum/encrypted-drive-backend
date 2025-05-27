@@ -3,9 +3,13 @@ package com.singidunum.encrypted_drive_backend.services;
 import com.singidunum.encrypted_drive_backend.configs.encryption.EncryptionUtility;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.CustomException;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.ErrorCode;
+import com.singidunum.encrypted_drive_backend.configs.mapper.MapperConfig;
 import com.singidunum.encrypted_drive_backend.configs.security.JwtClaims;
 import com.singidunum.encrypted_drive_backend.configs.storage.StorageConfig;
 import com.singidunum.encrypted_drive_backend.dtos.CreateFolderDto;
+import com.singidunum.encrypted_drive_backend.dtos.FileDto;
+import com.singidunum.encrypted_drive_backend.dtos.FolderDto;
+import com.singidunum.encrypted_drive_backend.dtos.WorkspaceDto;
 import com.singidunum.encrypted_drive_backend.entities.File;
 import com.singidunum.encrypted_drive_backend.entities.Folder;
 import com.singidunum.encrypted_drive_backend.entities.User;
@@ -38,8 +42,9 @@ public class StorageService {
     private final UserRepository userRepository;
     private final EnvelopeRepository envelopeRepository;
     private final JwtClaims jwtClaims;
-    private StorageConfig storageConfig;
-    private EncryptionUtility encryptionUtility;
+    private final StorageConfig storageConfig;
+    private final EncryptionUtility encryptionUtility;
+    private final MapperConfig mapperConfig;
 
     public void createUserWorkspace(User user) {
         Path storagePath = storageConfig.getStoragePath(String.valueOf(user.getUserId()));
@@ -112,26 +117,33 @@ public class StorageService {
 
     }
 
-    public List<Workspace> getAllUserWorkspaces() {
+    public List<WorkspaceDto> getAllUserWorkspaces() {
         Optional<User> user = userRepository.findByUsername(jwtClaims.getUsername());
 
         if(user.isEmpty()) {
             throw new CustomException("Failed to get User", HttpStatus.BAD_REQUEST, ErrorCode.USER_USERNAME_EXIST);
         }
-
-        return workspaceRepository.findAllByUserId(user.get().getUserId());
+        List<WorkspaceDto> workspaceDtos = new ArrayList<>();
+        workspaceRepository.findAllByUserId(user.get().getUserId()).forEach(
+                workspace -> workspaceDtos.add(mapperConfig.modelMapper().map(workspace, WorkspaceDto.class))
+        );
+        return workspaceDtos;
     }
 
     public Map<String, Object> getAllChildrenByWorkspaceId(int workspaceId) {
-        List<File> files = fileRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId);
-        List<Folder> folders = folderRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId);
+        List<FileDto> files = new ArrayList<>();
+        List<FolderDto> folders = new ArrayList<>();
+        fileRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId).forEach(file -> files.add(mapperConfig.modelMapper().map(file, FileDto.class)));
+        folderRepository.findAllByParentIdIsNullAndWorkspaceId(workspaceId).forEach(folder -> folders.add(mapperConfig.modelMapper().map(folder, FolderDto.class)));
 
         return Map.of("files", files, "folders", folders);
     }
 
     public Map<String, Object> getAllChildrenByFolderId(int folderId) {
-        List<File> files = fileRepository.findAllByParentId(folderId);
-        List<Folder> folders = folderRepository.findAllByParentId(folderId);
+        List<FileDto> files = new ArrayList<>();
+        List<FolderDto> folders = new ArrayList<>();
+        fileRepository.findAllByParentId(folderId).forEach(file -> files.add(mapperConfig.modelMapper().map(file, FileDto.class)));
+        folderRepository.findAllByParentId(folderId).forEach(folder -> folders.add(mapperConfig.modelMapper().map(folder, FolderDto.class)));
 
         return Map.of("files", files, "folders", folders);
     }
