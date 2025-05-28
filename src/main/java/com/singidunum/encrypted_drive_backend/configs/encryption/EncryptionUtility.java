@@ -55,8 +55,8 @@ public class EncryptionUtility {
 
     public PublicKey readPublicKeyFromPem(String pemKey) {
         try {
-            String result = pemKey.replaceAll("-----BEGIN RSA PUBLIC KEY-----", "")
-                    .replaceAll("-----END RSA PUBLIC KEY-----", "")
+            String result = pemKey.replaceAll("-----BEGIN PUBLIC KEY-----", "")
+                    .replaceAll("-----END PUBLIC KEY-----", "")
                     .replaceAll("\\s", "");
 
             byte[] decoded = Base64.getDecoder().decode(result);
@@ -76,8 +76,9 @@ public class EncryptionUtility {
         }
     }
 
-    public String createEnvelopeKey(SecretKey key, PublicKey userPubKey) {
+    public String createEnvelopeKey(SecretKey key, String publicKeyString) {
         try {
+            PublicKey userPubKey = readPublicKeyFromPem(publicKeyString);
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, userPubKey);
             byte[] encrypted = cipher.doFinal(key.getEncoded());

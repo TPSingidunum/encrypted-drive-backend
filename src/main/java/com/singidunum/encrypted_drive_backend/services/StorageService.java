@@ -1,5 +1,6 @@
 package com.singidunum.encrypted_drive_backend.services;
 
+import com.singidunum.encrypted_drive_backend.configs.encryption.EncryptionProperties;
 import com.singidunum.encrypted_drive_backend.configs.encryption.EncryptionUtility;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.CustomException;
 import com.singidunum.encrypted_drive_backend.configs.exceptions.ErrorCode;
@@ -10,10 +11,7 @@ import com.singidunum.encrypted_drive_backend.dtos.CreateFolderDto;
 import com.singidunum.encrypted_drive_backend.dtos.FileDto;
 import com.singidunum.encrypted_drive_backend.dtos.FolderDto;
 import com.singidunum.encrypted_drive_backend.dtos.WorkspaceDto;
-import com.singidunum.encrypted_drive_backend.entities.File;
-import com.singidunum.encrypted_drive_backend.entities.Folder;
-import com.singidunum.encrypted_drive_backend.entities.User;
-import com.singidunum.encrypted_drive_backend.entities.Workspace;
+import com.singidunum.encrypted_drive_backend.entities.*;
 import com.singidunum.encrypted_drive_backend.repositories.*;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -44,6 +42,7 @@ public class StorageService {
     private final JwtClaims jwtClaims;
     private final StorageConfig storageConfig;
     private final EncryptionUtility encryptionUtility;
+    private final EncryptionProperties encryptionProperties;
     private final MapperConfig mapperConfig;
 
     public void createUserWorkspace(User user) {
@@ -83,38 +82,41 @@ public class StorageService {
             throw new CustomException("Failed to get User", HttpStatus.BAD_REQUEST, ErrorCode.USER_USERNAME_EXIST);
         }
 
-        Path target = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "\\" + UUID.randomUUID()));
-
-        try (var in = file.getInputStream()) {
-            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
         SecretKey key = encryptionUtility.generateSecretKey();
         byte[] IV = encryptionUtility.generateIv();
         Cipher cipher = encryptionUtility.initializeCipher(Cipher.ENCRYPT_MODE, key, IV);
 
-        byte[] encryptedFilenameBytes = cipher.doFinal(filename.getBytes(StandardCharsets.UTF_8));
-        String encryptedFilename = Base64.getEncoder().encodeToString(encryptedFilenameBytes);
-
-        Path encryptedTarget = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "\\" + encryptedFilename));
-        Files.createDirectories(encryptedTarget);
-        try (OutputStream out = Files.newOutputStream(encryptedTarget); CipherOutputStream cos = new CipherOutputStream(out, cipher)) {
-            // Citaj fajl block po block cuvaj ga u adekvatnu lokaciju itd ...
+        Path encryptedTarget = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "/" + UUID.randomUUID()));
+        try (
+                var in = file.getInputStream();
+                OutputStream out = Files.newOutputStream(encryptedTarget);
+                CipherOutputStream cos = new CipherOutputStream(out, cipher)
+        ) {
+            byte[] buffer = new byte[encryptionProperties.getChunkSize()];
+            int bytesRead;
+            while((bytesRead = in.read(buffer)) != -1) {
+                cos.write(buffer, 0, bytesRead);
+            }
         }
 
         File newFile = new File();
         newFile.setWorkspaceId(workspaceId);
         newFile.setName(filename);
-        newFile.setPath(target.toString());
+        newFile.setPath(encryptedTarget.toString());
         if (folderId != 0) {
             newFile.setParentId(folderId);
         }
-        fileRepository.save(newFile);
+        File newfile = fileRepository.save(newFile);
+
+        Envelope envelope = new Envelope();
+        String envelopeKey = encryptionUtility.createEnvelopeKey(key, user.get().getPublicKey());
+        envelope.setFileId(newFile.getFileId());
+        envelope.setEncryptionKey(envelopeKey);
+        envelope.setUserId(user.get().getUserId());
+        envelope.setIv(Base64.getEncoder().encodeToString(IV));
+        envelopeRepository.save(envelope);
 
         return true;
-
     }
 
     public List<WorkspaceDto> getAllUserWorkspaces() {

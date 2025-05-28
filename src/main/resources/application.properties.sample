@@ -27,5 +27,5 @@ encryption.rsa-key-size=4096
 encryption.aes-key-size=256
 encryption.gcm-tag-size=128
 encryption.iv-size=96
-encryption.algorithm="AES/GCM/NoPadding"
+encryption.algorithm=AES/GCM/NoPadding
 encryption.chunk-size=4096
