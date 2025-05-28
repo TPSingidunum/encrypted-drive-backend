@@ -20,7 +20,9 @@ public class Envelope extends BaseEntity{
     @Column(name = "user_id")
     private Integer userId;
 
-    private String key;
+    @Column(name = "encryption_key")
+    private String encryptionKey;
+
     private String iv;
 
     // Relations
