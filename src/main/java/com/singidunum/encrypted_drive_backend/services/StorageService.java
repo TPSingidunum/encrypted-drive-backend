@@ -7,10 +7,7 @@ import com.singidunum.encrypted_drive_backend.configs.exceptions.ErrorCode;
 import com.singidunum.encrypted_drive_backend.configs.mapper.MapperConfig;
 import com.singidunum.encrypted_drive_backend.configs.security.JwtClaims;
 import com.singidunum.encrypted_drive_backend.configs.storage.StorageConfig;
-import com.singidunum.encrypted_drive_backend.dtos.CreateFolderDto;
-import com.singidunum.encrypted_drive_backend.dtos.FileDto;
-import com.singidunum.encrypted_drive_backend.dtos.FolderDto;
-import com.singidunum.encrypted_drive_backend.dtos.WorkspaceDto;
+import com.singidunum.encrypted_drive_backend.dtos.*;
 import com.singidunum.encrypted_drive_backend.entities.*;
 import com.singidunum.encrypted_drive_backend.repositories.*;
 import lombok.AllArgsConstructor;
@@ -170,5 +167,25 @@ public class StorageService {
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public DownloadEnvelopeDto loadFileWithEnvelope(int fileId) {
+        Resource resource = loadFile(fileId);
+        Optional<User> user = userRepository.findByUsername(jwtClaims.getUsername());
+
+        if (user.isEmpty()) {
+            throw new CustomException("Failed to get User", HttpStatus.BAD_REQUEST, ErrorCode.USER_USERNAME_EXIST);
+        }
+
+        Envelope envelope = envelopeRepository.findByFileIdAndUserId(fileId, user.get().getUserId());
+        if (envelope == null) {
+            throw new CustomException("Failed to get Envelope", HttpStatus.BAD_REQUEST, ErrorCode.BASE_ERROR);
+        }
+
+        Optional<File> file = fileRepository.findById(fileId);
+        String filename = file.map(File::getName).orElse("file");
+
+        return new DownloadEnvelopeDto(resource, envelope.getEncryptionKey(), envelope.getIv(), filename);
     }
 }

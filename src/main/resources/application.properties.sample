@@ -16,6 +16,8 @@ jwt.refresh.expire=86400000
 
 # Storage
 storage.local-storage-location=storage
+spring.servlet.multipart.max-file-size=2GB
+spring.servlet.multipart.max-request-size=2GB
 
 # Encryption
 encryption.certificate-path=src/main/resources/certs/ca_cert.pem

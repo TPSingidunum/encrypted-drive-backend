@@ -1,6 +1,7 @@
 package com.singidunum.encrypted_drive_backend.controllers;
 
 import com.singidunum.encrypted_drive_backend.dtos.CreateFolderDto;
+import com.singidunum.encrypted_drive_backend.dtos.DownloadEnvelopeDto;
 import com.singidunum.encrypted_drive_backend.dtos.WorkspaceDto;
 import com.singidunum.encrypted_drive_backend.services.StorageService;
 import jakarta.validation.Valid;
@@ -56,11 +57,11 @@ public class StorageController {
 
     @GetMapping("/download/file/{fileId}")
     public ResponseEntity<?> downloadFile(@PathVariable("fileId") int fileId) {
-        Resource resource = storageService.loadFile(fileId);
-        String filename = resource.getFilename();
+        DownloadEnvelopeDto dto = storageService.loadFileWithEnvelope(fileId);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename +"\"")
-                .body(resource);
-    }
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + dto.getFilename() + "\"")
+                .header("X-Envelope-Key", dto.getKey())
+                .header("X-Envelope-IV", dto.getIv())
+                .body(dto.getResource());    }
 }
