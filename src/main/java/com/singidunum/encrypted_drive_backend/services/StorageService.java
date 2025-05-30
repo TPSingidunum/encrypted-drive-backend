@@ -169,7 +169,6 @@ public class StorageService {
         }
     }
 
-
     public DownloadEnvelopeDto loadFileWithEnvelope(int fileId) {
         Resource resource = loadFile(fileId);
         Optional<User> user = userRepository.findByUsername(jwtClaims.getUsername());

@@ -63,5 +63,6 @@ public class StorageController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + dto.getFilename() + "\"")
                 .header("X-Envelope-Key", dto.getKey())
                 .header("X-Envelope-IV", dto.getIv())
-                .body(dto.getResource());    }
+                .body(dto.getResource());
+    }
 }
