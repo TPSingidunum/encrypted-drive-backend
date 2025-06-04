@@ -9,7 +9,15 @@ spring.datasource.password=
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.show-sql: true
 
-#Jwt Parameters
+# Mail
+spring.mail.host=
+spring.mail.port=
+spring.mail.username=
+spring.mail.password=
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Jwt Parameters
 jwt.secret=sldajf;ksajdf
 jwt.access.expire= 10800000
 jwt.refresh.expire=86400000
