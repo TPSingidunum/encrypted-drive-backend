@@ -201,24 +201,4 @@ public class CertificateInitializer implements ApplicationRunner {
 
         logger.info("Default CA certificate and private key generated successfully.");
     }
-
-
-    public static String getCertificateString(String certFile) {
-        try {
-            FileInputStream fis = new FileInputStream(certFile);
-            Scanner s = new Scanner(fis);
-            String cert = "";
-
-            while(s.hasNext()){
-                cert += s.nextLine();
-            }
-
-            s.close();
-            fis.close();
-            return cert;
-        } catch (Exception e) {
-            System.out.println("Greska prilikom citanja sertifikata");
-            return null;
-        }
-    }
 }

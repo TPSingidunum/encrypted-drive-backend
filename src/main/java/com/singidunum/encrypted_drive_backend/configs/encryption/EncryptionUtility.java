@@ -36,7 +36,6 @@ public class EncryptionUtility {
 
     public byte[] generateIv() {
         byte[] IV = new byte[encryptionProperties.getIvSize() / 8];
-        // TODO: namestiti da ima SEED securerandom, (da li ima smisla u ovoj situaciji)
         new SecureRandom().nextBytes(IV);
         return IV;
     }

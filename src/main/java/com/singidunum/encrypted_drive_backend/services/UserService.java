@@ -32,8 +32,15 @@ public class UserService {
         newUser.setUsername(data.getUsername());
         newUser.setPassword(passwordEncoder.encode(data.getPassword()));
 
-        return userRepository.save(newUser);
-    }
+        try {
+            return userRepository.save(newUser);
+        } catch (Exception e) {
+            throw new CustomException(
+                    e.getMessage(),
+                    HttpStatus.BAD_REQUEST,
+                    ErrorCode.BASE_ERROR
+            );
+        }    }
 
     public Optional<User> getUserByUsername(String username) {
         try {

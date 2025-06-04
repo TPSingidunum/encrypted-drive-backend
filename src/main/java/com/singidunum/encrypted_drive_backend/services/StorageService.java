@@ -72,7 +72,6 @@ public class StorageService {
     public boolean storeFile(int workspaceId, int folderId, MultipartFile file) throws IllegalBlockSizeException, BadPaddingException, IOException {
         String filename = Paths.get(Objects.requireNonNull(file.getOriginalFilename())).getFileName().toString();
         String username = jwtClaims.getUsername();
-        System.out.println(username);
         Optional<User> user = userRepository.findByUsername(username);
 
         if (user.isEmpty()) {
@@ -83,17 +82,22 @@ public class StorageService {
         byte[] IV = encryptionUtility.generateIv();
         Cipher cipher = encryptionUtility.initializeCipher(Cipher.ENCRYPT_MODE, key, IV);
 
-        Path encryptedTarget = storageConfig.getStoragePath(String.valueOf(user.get().getUserId() + "/" + UUID.randomUUID()));
-        try (
-                var in = file.getInputStream();
-                OutputStream out = Files.newOutputStream(encryptedTarget);
-                CipherOutputStream cos = new CipherOutputStream(out, cipher)
-        ) {
-            byte[] buffer = new byte[encryptionProperties.getChunkSize()];
-            int bytesRead;
-            while((bytesRead = in.read(buffer)) != -1) {
-                cos.write(buffer, 0, bytesRead);
+        Path encryptedTarget = storageConfig.getStoragePath(user.get().getUserId() + "/" + UUID.randomUUID());
+        try {
+            Files.createDirectories(encryptedTarget.getParent());
+            try (
+                    var in = file.getInputStream();
+                    OutputStream out = Files.newOutputStream(encryptedTarget);
+                    CipherOutputStream cos = new CipherOutputStream(out, cipher)
+            ) {
+                byte[] buffer = new byte[encryptionProperties.getChunkSize()];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    cos.write(buffer, 0, bytesRead);
+                }
             }
+        } catch (IOException e) {
+            throw new CustomException("Failed to store file", HttpStatus.BAD_REQUEST, ErrorCode.FAILED_FILE_STORE);
         }
 
         File newFile = new File();
@@ -103,11 +107,11 @@ public class StorageService {
         if (folderId != 0) {
             newFile.setParentId(folderId);
         }
-        File newfile = fileRepository.save(newFile);
+        File savedFile = fileRepository.save(newFile);
 
         Envelope envelope = new Envelope();
         String envelopeKey = encryptionUtility.createEnvelopeKey(key, user.get().getPublicKey());
-        envelope.setFileId(newFile.getFileId());
+        envelope.setFileId(savedFile.getFileId());
         envelope.setEncryptionKey(envelopeKey);
         envelope.setUserId(user.get().getUserId());
         envelope.setIv(Base64.getEncoder().encodeToString(IV));
@@ -163,9 +167,9 @@ public class StorageService {
                 throw new CustomException("Failed to get Storage file", HttpStatus.BAD_REQUEST, ErrorCode.STORAGE_FILE_DOES_NOT_EXIST);
             }
 
-            return  resource;
+            return resource;
         } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            throw new CustomException("Failed to load file", HttpStatus.BAD_REQUEST, ErrorCode.STORAGE_FILE_DOES_NOT_EXIST);
         }
     }
 

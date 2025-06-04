@@ -35,5 +35,5 @@ public class Folder extends BaseEntity{
     private List<Folder> childrenFolders = new ArrayList<>();
 
     @OneToMany(mappedBy = "parentFolder")
-    private List<Folder> childrenFiles = new ArrayList<>();
+    private List<File> childrenFiles = new ArrayList<>();
 }
